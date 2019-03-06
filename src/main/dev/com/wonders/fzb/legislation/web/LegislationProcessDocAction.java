@@ -16,11 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 //import com.wonders.fzb.zfry.module.platform.beans.TeamInfo;
 //import com.wonders.fzb.zfry.module.platform.beans.UserInfo;
@@ -76,7 +76,16 @@ public class LegislationProcessDocAction extends BaseAction {
 		request.setAttribute("type",type);
 		return SUCCESS;
 	}
-	
+
+	@RequestMapping("legislationProcessDoc_save")
+	@ResponseBody
+	public Map legislationProcessDoc_save(){
+		Map map=new HashMap();
+		map.put("success",true);
+		map.put("message","发布草案成功");
+		return map;
+	}
+
 	//LegislationProcessDoc的处理
 	@Action(value = "draft_create_info", results = {
 			@Result(name = SUCCESS, location = "/LegislationProcessDoc.jsp"), 

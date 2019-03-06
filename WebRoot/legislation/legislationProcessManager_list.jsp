@@ -105,9 +105,10 @@
 	<link href="${basePath}/legislation/assets/page/common.css" rel="stylesheet" type="text/css" />
 	<script src="${basePath}/legislation/assets/page/page.js" type="text/javascript"></script>
 	<script src="${basePath}/legislation/assets/page/common.js" type="text/javascript"></script>
+	<script src="${basePath}/legislation/assets/util/util.js" type="text/javascript"></script>
 	<script src="${basePath}/legislation/assets/js/plugins/layer/layer.min.js?v=2.0"></script>
 
-<script type="text/javascript">
+	<script type="text/javascript">
 	$(function () {
         var startDate = laydate.render({
             elem: '#startTime',
