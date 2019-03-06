@@ -110,6 +110,9 @@
 
 	<script type="text/javascript">
 	$(function () {
+        $.ajaxSetup({
+            async : false
+        });
         var startDate = laydate.render({
             elem: '#startTime',
             format:'yyyy-MM-dd',

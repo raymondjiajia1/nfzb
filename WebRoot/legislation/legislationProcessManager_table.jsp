@@ -35,13 +35,23 @@
 									<td ><a href="javaScript:void(0)" data-title="查看" class="layer_full_link">查看</a><br/><a href="javascript:void(0);" class="layer_full_link">草案历史 </a><a href="javascript:void(0);" class="layer_full_link"> 办理情况</a></td>
 								</c:when>
 								<c:otherwise>
-									<td ><a href="javaScript:void(0)" data-title="修改" class="layer_full_link">修改</a><br/><a href="javascript:void(0);" onclick="upload('${task.stDocId}','${task.stNodeId}')" class="layer_full_link">上报</a></td>
+									<td ><a href="javaScript:void(0)" data-title="修改" class="layer_full_link">修改</a><br/><a href="javascript:void(0);" onclick="nextProcess('${task.stDocId}','${task.stNodeId}','nextProcess')" class="layer_full_link">上报</a></td>
 								</c:otherwise>
 							</c:choose>
 
 						</c:when>
 						<c:otherwise>
-							<td ><a href="javaScript:void(0)" data-title="查看" class="layer_full_link">查看</a><br/><a href="javascript:void(0);" class="layer_full_link">接受</a></td>
+							<c:choose>
+								<c:when test="${buttonStatus=='TODO'}">
+									<td ><a href="javaScript:void(0)" data-title="查看" class="layer_full_link">查看</a><br/><a href="javascript:void(0);" onclick="nextProcess('${task.stDocId}','${task.stNodeId}','nextChildProcess')" class="layer_full_link">接收</a></td>
+								</c:when>
+								<c:when test="${buttonStatus=='DOING'}">
+									<td ><a href="javaScript:void(0)" data-title="查看" class="layer_full_link">查看</a><br/><a href="javascript:void(0);" class="layer_full_link">分办</a></td>
+								</c:when>
+								<c:otherwise>
+									<td ><a href="javaScript:void(0)" data-title="查看" class="layer_full_link">查看</a><br/><a href="javascript:void(0);" class="layer_full_link">草案历史 </a><a href="javascript:void(0);" class="layer_full_link"> 办理情况</a></td>
+								</c:otherwise>
+							</c:choose>
 						</c:otherwise>
 					</c:choose>
 				</tr>
@@ -65,14 +75,18 @@
         submitForm(1);
     }
 
-    function upload(stDocId,stNodeId) {
+    function nextProcess(stDocId,stNodeId,method) {
         layer.confirm('确认要上报吗？',function(index){
             layer.close(layer.index);
             var currentWwwPath=window.document.location.href;
             var pathName=window.document.location.pathname;
             var position=currentWwwPath.indexOf(pathName);
             var localhostPath=currentWwwPath.substring(0,position);
-            $.post(localhostPath+'/legislationProcessTask/upload.do?stDocId='+stDocId+'&stNodeId='+stNodeId);
+            if(method=="nextProcess"){
+                $.post(localhostPath+'/legislationProcessTask/nextProcess.do?stDocId='+stDocId+'&stNodeId='+stNodeId);
+            }else{
+                $.post(localhostPath+'/legislationProcessTask/nextChildProcess.do?stDocId='+stDocId+'&stNodeId='+stNodeId);
+            }
             submitForm(1);
         });
     }
