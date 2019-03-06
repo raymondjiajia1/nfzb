@@ -66,11 +66,14 @@
     }
 
     function upload(stDocId,stNodeId) {
-        var currentWwwPath=window.document.location.href;
-        var pathName=window.document.location.pathname;
-        var position=currentWwwPath.indexOf(pathName);
-        var localhostPath=currentWwwPath.substring(0,position);
-        $.post(localhostPath+'/legislationProcessTask/upload.do?stDocId='+stDocId+'&stNodeId='+stNodeId);
-        submitForm(1);
+        layer.confirm('确认要上报吗？',function(index){
+            layer.close(layer.index);
+            var currentWwwPath=window.document.location.href;
+            var pathName=window.document.location.pathname;
+            var position=currentWwwPath.indexOf(pathName);
+            var localhostPath=currentWwwPath.substring(0,position);
+            $.post(localhostPath+'/legislationProcessTask/upload.do?stDocId='+stDocId+'&stNodeId='+stNodeId);
+            submitForm(1);
+        });
     }
 </script>
