@@ -70,8 +70,8 @@ public class LegislationProcessTaskAction extends BaseAction {
 		return SUCCESS;
 	}
 
-	@Action(value = "upload")
-	public void upload() throws FzbDaoException {
+	@Action(value = "nextProcess")
+	public void nextProcess() throws FzbDaoException {
 		String stDocId = request.getParameter("stDocId");
 		String stNodeId = request.getParameter("stNodeId");
 		List<LegislationProcessTask> list = legislationProcessTaskService.findByHQL("from LegislationProcessTask t where 1=1 and t.stDocId ='"+stDocId+"' and t.stNodeId='"+stNodeId+"'");
@@ -89,6 +89,25 @@ public class LegislationProcessTaskAction extends BaseAction {
 			nextLegislationProcessTask.setDtOpenDate(new Date());
 			legislationProcessTaskService.add(nextLegislationProcessTask);
 			legislationProcessDocService.executeSqlUpdate("update LegislationProcessDoc s set s.stNodeId='"+nextLegislationProcessTask.getStNodeId()+"',s.stNodeName='"+nextLegislationProcessTask.getStNodeName()+"' where s.stDocId='"+nextLegislationProcessTask.getStDocId()+"'");
+		}
+	}
+
+	@Action(value = "nextChildProcess")
+	public void nextChildProcess() throws FzbDaoException {
+		String stDocId = request.getParameter("stDocId");
+		String stNodeId = request.getParameter("stNodeId");
+		List<LegislationProcessTask> list = legislationProcessTaskService.findByHQL("from LegislationProcessTask t where 1=1 and t.stDocId ='"+stDocId+"' and t.stNodeId='"+stNodeId+"'");
+		for(LegislationProcessTask legislationProcessTask:list){
+			String curStTaskStatus =legislationProcessTask.getStTaskStatus();
+
+			String[] stTaskStatusArray= wegovSimpleNodeService.findByHQL("from WegovSimpleNode t where 1=1 and t.stNodeId ='"+stNodeId+"'").get(0).getStDoneName().split("#");
+			for(int i=0;i<stTaskStatusArray.length;i++){
+				if(curStTaskStatus.equals(stTaskStatusArray[i])){
+					legislationProcessTask.setStTaskStatus(stTaskStatusArray[i+1]);
+					break;
+				}
+			}
+			legislationProcessTaskService.update(legislationProcessTask);
 		}
 	}
 
@@ -150,7 +169,11 @@ public class LegislationProcessTaskAction extends BaseAction {
 		System.out.println("查询任务节点stNodeId:"+stNodeId);
 
 		System.out.println("当前节点："+nodeInfo.getStNodeName());
-		request.setAttribute("buttonStatus", taskStatus);
+		if(StringUtil.isEmpty(taskStatus)){
+			request.setAttribute("buttonStatus", "TODO");
+		}else{
+			request.setAttribute("buttonStatus", taskStatus);
+		}
 		request.setAttribute("nodeInfo", nodeInfo);
 		request.setAttribute("pageNo", pageNo);
 		request.setAttribute("pageSize", pageSize);
