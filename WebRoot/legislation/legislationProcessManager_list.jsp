@@ -158,7 +158,6 @@
             $('.modal .modal-body').css('max-height', $(window).height() * 0.7);
         });
 	});
-
 	function addLegislationProcess() {
         $("#legislationProcessForm").modal({
             remote: "${basePath}/legislationProcessDoc/legislationProcessDoc_form.do?stNodeId=${nodeId}&type=add"
