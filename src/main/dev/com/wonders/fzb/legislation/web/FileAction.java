@@ -3,13 +3,14 @@ package com.wonders.fzb.legislation.web;
 import com.alibaba.fastjson.JSONObject;
 import com.wonders.fzb.base.actions.BaseAction;
 import com.wonders.fzb.base.exception.FzbDaoException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.struts2.convention.annotation.Action;
 import org.apache.struts2.convention.annotation.Namespace;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.*;
 import java.util.Date;
@@ -23,24 +24,57 @@ import java.util.Random;
 @Scope("prototype")
 public class FileAction extends BaseAction {
 
-    private String filePath="";
+    private File upload;
 
-    @Action("upload")
-    public void upload(@RequestParam("file") MultipartFile file) throws FzbDaoException, IOException {
+    private String uploadContentType;
+
+    private String uploadFileName;
+
+    private String filePath="D:/idea/nfzb-github/WebRoot/legislation/file";
+
+    public File getUpload() {
+        return upload;
+    }
+
+    public void setUpload(File upload) {
+        this.upload = upload;
+    }
+
+    public String getUploadContentType() {
+        return uploadContentType;
+    }
+
+    public void setUploadContentType(String uploadContentType) {
+        this.uploadContentType = uploadContentType;
+    }
+
+    public String getUploadFileName() {
+        return uploadFileName;
+    }
+
+    public void setUploadFileName(String uploadFileName) {
+        this.uploadFileName = uploadFileName;
+    }
+
+    @Action(value = "upload")
+    public void upload() throws FzbDaoException, IOException {
         JSONObject jsonObject=new JSONObject();
         String path =filePath;
-        String fileName=getCode();
-        file.transferTo(new File(path+"/"+fileName));
+        String fileName=getCode()+"."+uploadFileName.substring(uploadFileName.lastIndexOf(".") + 1);
+        File file = new File(path, fileName);
+        FileUtils.copyFile(upload, file);
         jsonObject.put("url",path+"/"+fileName);
-        jsonObject.put("name",file.getOriginalFilename());
+        jsonObject.put("name",uploadFileName);
         jsonObject.put("fileName",fileName);
         jsonObject.put("success",true);
         response.setContentType("application/json; charset=UTF-8");
-        response.getWriter().write(jsonObject.toString());
+        response.getWriter().print(jsonObject);
     }
 
-    @Action("downloadAttach")
-    public void downloadAttach(String url,String name) throws Exception{
+    @Action(value = "downloadAttach")
+    public void downloadAttach() throws Exception{
+        String name=request.getParameter("name");
+        String url=request.getParameter("url");
         request.setCharacterEncoding("UTF-8");
         //第一步：设置响应类型
         response.setContentType("application/force-download");//应用程序强制下载
@@ -81,4 +115,5 @@ public class FileAction extends BaseAction {
         }
         return fourRandom;
     }
+
 }

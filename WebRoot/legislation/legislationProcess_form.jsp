@@ -25,12 +25,10 @@
 					></textarea>
 				</div>
 			</div>
-			<div class="form-group">
-				<div class="col-sm-4 col-sm-offset-4">
+			<div class="form-group text-center">
 					<input type="button" class="btn btn-w-m btn-success" id="btnSave"
 						   name="btnSave" onclick="saveLegislationProcessDoc()" value="提交"> &nbsp;&nbsp;
 					<input type="button" class="btn btn-w-m btn-success" data-dismiss="modal" value="返回">
-				</div>
 			</div>
 			<div class="form-group">
 				<label class="control-label">起草材料
@@ -55,7 +53,7 @@
                             <td ><span style="color: red">暂未上传</span></td>
                             <td >
                                 <label class="btn btn-w-m btn-success"  onclick="toUploadFile(this)">点击上传</label>
-                                <input id="1" type="file" style="display:none"  onchange="uploadFile(this,1)">
+                                <input id="1" name="upload" type="file" style="display:none"  onchange="uploadFile(this.id,1)">
                             </td>
                         </tr>
                         <tr class="text-center">
@@ -63,7 +61,7 @@
                             <td ><span style="color: red">暂未上传</span></td>
                             <td >
                                 <label class="btn btn-w-m btn-success"  onclick="toUploadFile(this)">点击上传</label>
-                                <input id="2" type="file" style="display:none"  onchange="uploadFile(this,1)">
+                                <input id="2" name="upload" type="file" style="display:none"  onchange="uploadFile(this.id,1)">
                             </td>
                         </tr>
                         <tr class="text-center">
@@ -71,7 +69,7 @@
                             <td ><span style="color: red">暂未上传</span></td>
                             <td >
                                 <label class="btn btn-w-m btn-success"  onclick="toUploadFile(this)">点击上传</label>
-                                <input id="3" type="file" style="display:none"  onchange="uploadFile(this,1)">
+                                <input id="3" name="upload" type="file" style="display:none"  onchange="uploadFile(this.id,1)">
                             </td>
                         </tr>
                         <tr class="text-center">
@@ -79,7 +77,7 @@
                             <td ><span style="color: red">暂未上传</span></td>
                             <td >
                                 <label class="btn btn-w-m btn-success"  onclick="toUploadFile(this)">点击上传</label>
-                                <input id="4" type="file" style="display:none"  onchange="uploadFile(this,1)">
+                                <input id="4" name="upload" type="file" style="display:none"  onchange="uploadFile(this.id,1)">
                             </td>
                         </tr>
                         <tr class="text-center">
@@ -87,7 +85,7 @@
                             <td ><span style="color: red">暂未上传</span></td>
                             <td >
                                 <label class="btn btn-w-m btn-success"  onclick="toUploadFile(this)">点击上传</label>
-                                <input id="5" type="file" style="display:none"  onchange="uploadFile(this,1)">
+                                <input id="5" name="upload" type="file" style="display:none"  onchange="uploadFile(this.id,1)">
                             </td>
                         </tr>
                         <tr class="text-center">
@@ -95,7 +93,7 @@
                             <td ><span style="color: red">暂未上传</span></td>
                             <td >
                                 <label class="btn btn-w-m btn-success"  onclick="toUploadFile(this)">点击上传</label>
-                                <input id="6" type="file" style="display:none"  onchange="uploadFile(this,1)">
+                                <input id="6"  name="upload" type="file" style="display:none"  onchange="uploadFile(this.id,1)">
                             </td>
                         </tr>
                     </tbody>
@@ -106,7 +104,7 @@
                 </label>
                 <label class="btn btn-w-m btn-success" onclick="toUploadFile(this)">点击上传
                 </label>
-                <input  type="file" style="display:none"  onchange="uploadFile(this,1)">
+                <input  type="file" id="7" name="upload" style="display:none"  onchange="uploadFile(this.id,2)">
             </div>
             <div class="form-group">
                 <table class="table table-striped table-hover"
@@ -152,69 +150,49 @@
     function toUploadFile(obj) {
         $(obj).next().click();
     }
-    function uploadFile(target,type) {
-        var obj=$(target);
-        // var fileSize = 0;
-        // var isIE = /msie/i.test(navigator.userAgent) && !window.opera;
-        // if (isIE && !target.files) {
-        //     var fileSystem = new ActiveXObject("Scripting.FileSystemObject");
-        //     var file = fileSystem.GetFile(filepath);
-        //     fileSize = file.Size;
-        // } else {
-        //     fileSize = target.files[0].size;
-        // }
+    function uploadFile(id,type) {
+        $.ajaxFileUpload({
+            url: '${basePath}/file/upload.do',
+            type: 'post',
+            secureuri: false,                       //是否启用安全提交,默认为false
+            fileElementId: id,
+            dataType: 'JSON',
+            success: function (data, status) {        //服务器响应成功时的处理函数
+                data = data.replace(/<.*?>/ig, "");  //ajaxFileUpload会对服务器响应回来的text内容加上<pre>text</pre>前后缀
+                var file = JSON.parse(data);
+                if (file.success) {
+                    if(type==1){
+                        var html='<a target="_blank" href="${basePath}/file/downloadAttach.do?name='+file.name+'&url='+file.url+'">下载</a>&nbsp;&nbsp;'
+                            +'<label  style="color: red" onclick="deleteAttach(this,1,'+id+')" >删除</label>';
+                        $("#"+id).parent().prev().html('<span>'+file.name+'</span>');
+                        $("#"+id).parent().html(html);
+                    }else{
+                        var html='<tr class="text-center">'
+                            +'<td class="text-left">需要报送的其他材料</td>'
+                            +'<td>'+file.name+'</td>'
+                            +'<td><a  target="_blank" href="${basePath}/file/downloadAttach.do?name='+file.name+'&url='+file.url+'">下载</a>&nbsp;&nbsp;'
+                            +'<label  style="color: red" onclick="deleteAttach(this,2,'+id+')" >删除</label>'
+                            +'</td></tr>';
+                        $('#otherMaterial').append(html);
+                    }
+                } else {
+                    Duang.error("提示", "上传材料失败");
+                }
+            },
+            error: function (data, status, e) { //服务器响应失败时的处理函数
+                Duang.error("提示", "上传材料失败");
+            }
+        });
+    }
+    function deleteAttach(attachObj,type,id) {
+        var obj=$(attachObj);
         if(type==1){
-            var html='<a target="_blank" href="${basePath}/file/downloadAttach">下载</a>&nbsp;&nbsp;'
-                +'<label style="color: red" onclick="deleteAttach(this)" >删除</label>';
-            obj.parent().prev().html('<span>哈哈哈哈哈啊哈哈</span>');
+            obj.parent().prev().html('<span style="color: red">暂未上传</span>');
+            var html= '<label class="btn btn-w-m btn-success"  onclick="toUploadFile(this)">点击上传</label>'
+                     +'<input id="'+id+'" type="file" style="display:none"  onchange="uploadFile('+id+',1)">';
             obj.parent().html(html);
         }else{
-            var html='<tr class="text-center">'
-                +'<td class="text-left">需要报送的其他材料</td>'
-                +'<td>哈哈哈哈哈哈哈哈</td>'
-                +'<td><a  target="_blank" href="${basePath}/file/downloadAttach.do">下载</a>&nbsp;&nbsp;'
-                +'<label style="color: red" onclick="deleteAttach(this)" >删除</label>'
-                +'</td></tr>';
-            $('#otherMaterial').append(html);
+            obj.parent().parent().remove();
         }
-        <%--$.ajaxFileUpload({--%>
-            <%--url: '${basePath}/legislationProcessDoc/legislationProcessDoc_save.do',--%>
-            <%--type: 'post',--%>
-            <%--secureuri: false,                       //是否启用安全提交,默认为false--%>
-            <%--fileElementId: target.id,--%>
-            <%--dataType: 'JSON',--%>
-            <%--success: function (data, status) {        //服务器响应成功时的处理函数--%>
-                <%--data = data.replace(/<.*?>/ig, "");  //ajaxFileUpload会对服务器响应回来的text内容加上<pre>text</pre>前后缀--%>
-                <%--var file = JSON.parse(data);--%>
-                <%--if (file.success) {--%>
-                    <%--alert("file.name="+file.name);--%>
-                    <%--if(type=="1"){--%>
-                        <%--alert("file.fileName="+file.fileName);--%>
-                        <%--var html='<a class="control-label col-md-3" target="_blank" href="${basePath}/file/downloadAttach?name='+file.fileName+'&url='+file.url+'">下载</a>'--%>
-                                <%--+'<a class="control-label col-md-3" href="javaScript:void(0)" onclick="deleteAttach(this)" >删除</a>';--%>
-                        <%--obj.parent().prev().html('<span>'+file.name+'</span>');--%>
-                        <%--obj.parent().html(html);--%>
-                    <%--}else{--%>
-                        <%--var html='<tr class="text-center">'--%>
-                            <%--+'<td class="text-left">需要报送的其他材料</td>'--%>
-                            <%--+'<td>'+file.name+'</td>'--%>
-                            <%--+'<td><a class="control-label col-md-3" target="_blank" href="${basePath}/file/downloadAttach.do?name='+file.fileName+'&url='+file.url+'">下载</a>'--%>
-                            <%--+'<a class="control-label col-md-3" href="javaScript:void(0)" onclick="deleteAttach(this)" >删除</a>'--%>
-                            <%--+'</td></tr>';--%>
-                        <%--$('#otherMaterial').append(html);--%>
-                    <%--}--%>
-                    <%--Duang.success("提示", "上传材料成功");--%>
-                <%--} else {--%>
-                    <%--Duang.error("提示", "上传材料失败");--%>
-                <%--}--%>
-            <%--},--%>
-            <%--error: function (data, status, e) { //服务器响应失败时的处理函数--%>
-                <%--Duang.error("提示", "上传材料失败");--%>
-            <%--}--%>
-        <%--});--%>
-    }
-    function deleteAttach(attachObj) {
-        var obj=$(attachObj);
-        obj.parent().parent().remove();
     }
 </script>

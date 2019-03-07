@@ -88,7 +88,7 @@
 				</div>
 			</div>
 			<div class="modal inmodal fade" id="legislationProcessForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"  aria-hidden="true">
-				<div class="modal-dialog modal-lg">
+				<div class="modal-dialog" style="width: 800px">
 					<div class="modal-content">
 
 					</div>
@@ -108,6 +108,7 @@
 	<script src="${basePath}/legislation/assets/page/common.js" type="text/javascript"></script>
 	<script src="${basePath}/legislation/assets/util/util.js" type="text/javascript"></script>
 	<script src="${basePath}/legislation/assets/js/plugins/layer/layer.min.js?v=2.0"></script>
+	<script src="${basePath}/legislation/assets/util/ajaxfileupload.js" type="text/javascript"></script>
 
 	<script type="text/javascript">
 	$(function () {
@@ -148,6 +149,13 @@
         });
         $.post("../${requestUrl}?stNodeId=${nodeId}&method=queryTable",function(data){
             $('#legislationProcessTaskTable').html(data);
+        });
+        $('body').on('hidden.bs.modal', '.modal', function () {
+            $(this).removeData('bs.modal');
+        });
+        $('body').on('show.bs.modal', function () {
+            $('.modal .modal-body').css('overflow-y', 'auto');
+            $('.modal .modal-body').css('max-height', $(window).height() * 0.7);
         });
 	});
 	function addLegislationProcess() {
