@@ -17,9 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
-
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -46,73 +47,42 @@ public class LegislationProcessTaskAction extends BaseAction {
 	@Qualifier("legislationProcessDocService")
 	private LegislationProcessDocService legislationProcessDocService;
 
-	private int pageNo = 1;
-	private int pageSize = 10;
 	Page<LegislationProcessDoc> infoPage;
 
 	@Action(value = "legislationProcessTask_add", results = {@Result(name = SUCCESS, location = "/LegislationProcessTask.jsp"), @Result(name = "List", location = "/legislationProcessTask_list.jsp")})
 	public String legislationProcessTask_add() throws FzbDaoException {
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		List<LegislationProcessTask> legislationProcessTaskList = new ArrayList<LegislationProcessTask>();
 		LegislationProcessTask legislationProcessTask = new LegislationProcessTask();
 		legislationProcessTaskService.add(legislationProcessTask);
 		return SUCCESS;
 	}
 	
 	
-	@Action(value = "legislationProcessTask_list", results = { @Result(name = SUCCESS, location = "/legislation/legislationProcessManager_list.jsp")})
-	public String choose_plan_list() throws FzbDaoException {
-		String stNodeId = request.getParameter("stNodeId");
-
-		request.setAttribute("nodeId", stNodeId);
-		request.setAttribute("stTodoNameList", queryButtonInfo(stNodeId));
+	@Action(value = "draft_fzbrecv_info", results = { @Result(name = SUCCESS, location = "/legislation/legislationProcessManager_list.jsp"),@Result(name = "QueryTable", location = "/legislation/legislationProcessManager_table.jsp")})
+	public String listMethodManager() throws FzbDaoException {
+		String methodStr = request.getParameter("method");
+		if(StringUtil.isEmpty(methodStr)){
+			String stNodeId = request.getParameter("stNodeId");
+			request.setAttribute("requestUrl", request.getRequestURI());
+			request.setAttribute("nodeId", stNodeId);
+			request.setAttribute("stTodoNameList", queryButtonInfo(stNodeId));
+		}else{
+			try {
+				java.lang.reflect.Method method = this.getClass().getDeclaredMethod(methodStr);
+				Object object = method.invoke(this);
+				return object==null?null:object.toString();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
 		return SUCCESS;
 	}
 
-	@Action(value = "nextProcess")
-	public void nextProcess() throws FzbDaoException {
-		String stDocId = request.getParameter("stDocId");
-		String stNodeId = request.getParameter("stNodeId");
-		List<LegislationProcessTask> list = legislationProcessTaskService.findByHQL("from LegislationProcessTask t where 1=1 and t.stDocId ='"+stDocId+"' and t.stNodeId='"+stNodeId+"'");
-		for(LegislationProcessTask legislationProcessTask:list){
-			legislationProcessTask.setStTaskStatus("DONE");
-			legislationProcessTaskService.update(legislationProcessTask);
-
-			LegislationProcessTask nextLegislationProcessTask = new LegislationProcessTask ();
-			nextLegislationProcessTask.setStDocId(legislationProcessTask.getStDocId());
-			nextLegislationProcessTask.setStFlowId(legislationProcessTask.getStFlowId());
-			List<WegovSimpleNode> nodeList = wegovSimpleNodeService.findByHQL("from WegovSimpleNode t where 1=1 and t.stNodeId ='"+stNodeId+"'");
-			nextLegislationProcessTask.setStNodeId(nodeList.get(0).getStNextNode());
-			nextLegislationProcessTask.setStNodeName(wegovSimpleNodeService.findByHQL("from WegovSimpleNode t where 1=1 and t.stNodeId ='"+nodeList.get(0).getStNextNode()+"'").get(0).getStNodeName());
-			nextLegislationProcessTask.setStTaskStatus("TODO");
-			nextLegislationProcessTask.setDtOpenDate(new Date());
-			legislationProcessTaskService.add(nextLegislationProcessTask);
-			legislationProcessDocService.executeSqlUpdate("update LegislationProcessDoc s set s.stNodeId='"+nextLegislationProcessTask.getStNodeId()+"',s.stNodeName='"+nextLegislationProcessTask.getStNodeName()+"' where s.stDocId='"+nextLegislationProcessTask.getStDocId()+"'");
-		}
-	}
-
-	@Action(value = "nextChildProcess")
-	public void nextChildProcess() throws FzbDaoException {
-		String stDocId = request.getParameter("stDocId");
-		String stNodeId = request.getParameter("stNodeId");
-		List<LegislationProcessTask> list = legislationProcessTaskService.findByHQL("from LegislationProcessTask t where 1=1 and t.stDocId ='"+stDocId+"' and t.stNodeId='"+stNodeId+"'");
-		for(LegislationProcessTask legislationProcessTask:list){
-			String curStTaskStatus =legislationProcessTask.getStTaskStatus();
-
-			String[] stTaskStatusArray= wegovSimpleNodeService.findByHQL("from WegovSimpleNode t where 1=1 and t.stNodeId ='"+stNodeId+"'").get(0).getStDoneName().split("#");
-			for(int i=0;i<stTaskStatusArray.length;i++){
-				if(curStTaskStatus.equals(stTaskStatusArray[i])){
-					legislationProcessTask.setStTaskStatus(stTaskStatusArray[i+1]);
-					break;
-				}
-			}
-			legislationProcessTaskService.update(legislationProcessTask);
-		}
-	}
-
-	@Action(value = "legislationProcessTask_table", results = { @Result(name = SUCCESS, location = "/legislation/legislationProcessManager_table.jsp")})
-	public String choose_plan_table() throws FzbDaoException {
+	/**
+	 * table查询
+	 * @return
+	 */
+	private String queryTable(){
 		String pageSize = request.getParameter("pageSize");
 		String pageNo = request.getParameter("pageNo");
 		String stNodeId = request.getParameter("stNodeId");
@@ -122,18 +92,14 @@ public class LegislationProcessTaskAction extends BaseAction {
 		String endTime=request.getParameter("endTime");
 		String stDocName=request.getParameter("stDocName");
 
-		System.out.println("查询任务节点stNodeId:"+stNodeId);
 		if (null == pageSize || "".equals(pageSize)) {
 			pageSize = "10";
 		}
 		if (null == pageNo || "".equals(pageNo)) {
 			pageNo = "1";
 		}
-		Map<String, Object> condMap = new HashMap<String, Object>();
-		Map<String, Object> condMapSub = new HashMap<String, Object>();
 
 		WegovSimpleNode nodeInfo = wegovSimpleNodeService.findById(stNodeId);
-		//条件拼装
 		String baseSql = "WHERE 1=1 ";
 
 		if(null != stNodeId && !"".equals(stNodeId)){
@@ -161,14 +127,9 @@ public class LegislationProcessTaskAction extends BaseAction {
 			baseSql += "and t.st_team_Id = '"+session.getAttribute("unitCode")+"' ";
 		}
 
-
 		String orderSql = " order by d.dt_create_date DESC";
-
 		infoPage=legislationProcessTaskService.findTaskDocListByNodeId(baseSql + orderSql, Integer.parseInt(pageNo), Integer.parseInt(pageSize));
-		System.out.println("查询到的当前节点草案任务数："+infoPage.getTotalSize());
-		System.out.println("查询任务节点stNodeId:"+stNodeId);
 
-		System.out.println("当前节点："+nodeInfo.getStNodeName());
 		if(StringUtil.isEmpty(taskStatus)){
 			request.setAttribute("buttonStatus", "TODO");
 		}else{
@@ -179,7 +140,58 @@ public class LegislationProcessTaskAction extends BaseAction {
 		request.setAttribute("pageSize", pageSize);
 		request.setAttribute("retPage", infoPage);
 		request.setAttribute("nodeId", stNodeId);
-		return SUCCESS;
+		return "QueryTable";
+	}
+
+	/**
+	 * 主节点流转
+	 * @return
+	 * @throws FzbDaoException
+	 */
+	private String nextProcess() throws FzbDaoException {
+		String stDocId = request.getParameter("stDocId");
+		String stNodeId = request.getParameter("stNodeId");
+		List<LegislationProcessTask> list = legislationProcessTaskService.findByHQL("from LegislationProcessTask t where 1=1 and t.stDocId ='"+stDocId+"' and t.stNodeId='"+stNodeId+"'");
+		for(LegislationProcessTask legislationProcessTask:list){
+			legislationProcessTask.setStTaskStatus("DONE");
+			legislationProcessTaskService.update(legislationProcessTask);
+
+			LegislationProcessTask nextLegislationProcessTask = new LegislationProcessTask ();
+			nextLegislationProcessTask.setStDocId(legislationProcessTask.getStDocId());
+			nextLegislationProcessTask.setStFlowId(legislationProcessTask.getStFlowId());
+			List<WegovSimpleNode> nodeList = wegovSimpleNodeService.findByHQL("from WegovSimpleNode t where 1=1 and t.stNodeId ='"+stNodeId+"'");
+			nextLegislationProcessTask.setStNodeId(nodeList.get(0).getStNextNode());
+			nextLegislationProcessTask.setStNodeName(wegovSimpleNodeService.findByHQL("from WegovSimpleNode t where 1=1 and t.stNodeId ='"+nodeList.get(0).getStNextNode()+"'").get(0).getStNodeName());
+			nextLegislationProcessTask.setStTaskStatus("TODO");
+			nextLegislationProcessTask.setDtOpenDate(new Date());
+			legislationProcessTaskService.add(nextLegislationProcessTask);
+			legislationProcessDocService.executeSqlUpdate("update LegislationProcessDoc s set s.stNodeId='"+nextLegislationProcessTask.getStNodeId()+"',s.stNodeName='"+nextLegislationProcessTask.getStNodeName()+"' where s.stDocId='"+nextLegislationProcessTask.getStDocId()+"'");
+		}
+		return null;
+	}
+
+	/**
+	 * 次节点流转
+	 * @return
+	 * @throws FzbDaoException
+	 */
+	private String nextChildProcess() throws FzbDaoException {
+		String stDocId = request.getParameter("stDocId");
+		String stNodeId = request.getParameter("stNodeId");
+		List<LegislationProcessTask> list = legislationProcessTaskService.findByHQL("from LegislationProcessTask t where 1=1 and t.stDocId ='"+stDocId+"' and t.stNodeId='"+stNodeId+"'");
+		for(LegislationProcessTask legislationProcessTask:list){
+			String curStTaskStatus =legislationProcessTask.getStTaskStatus();
+
+			String[] stTaskStatusArray= wegovSimpleNodeService.findByHQL("from WegovSimpleNode t where 1=1 and t.stNodeId ='"+stNodeId+"'").get(0).getStDoneName().split("#");
+			for(int i=0;i<stTaskStatusArray.length;i++){
+				if(curStTaskStatus.equals(stTaskStatusArray[i])){
+					legislationProcessTask.setStTaskStatus(stTaskStatusArray[i+1]);
+					break;
+				}
+			}
+			legislationProcessTaskService.update(legislationProcessTask);
+		}
+		return null;
 	}
 
 	public Page<LegislationProcessDoc> getInfoPage() {

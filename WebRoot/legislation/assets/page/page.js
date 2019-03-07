@@ -71,7 +71,8 @@ function submitForm(pageNo) {
     var pathName=window.document.location.pathname;
     var position=currentWwwPath.indexOf(pathName);
     var localhostPath=currentWwwPath.substring(0,position);
-    $.post(localhostPath+'/legislationProcessTask/legislationProcessTask_table.do?stNodeId='+$('#stNodeId').val(),{
+
+    $.post(localhostPath+$('#requestUrl').val()+"?stNodeId="+$('#stNodeId').val()+"&method=queryTable",{
         pageNo:pageNo,
         taskStatus:$('#taskStatus').val(),
         startTime:$('#startTime').val(),
