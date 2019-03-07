@@ -78,15 +78,7 @@
     function nextProcess(stDocId,stNodeId,method) {
         layer.confirm('确认要上报吗？',function(index){
             layer.close(layer.index);
-            var currentWwwPath=window.document.location.href;
-            var pathName=window.document.location.pathname;
-            var position=currentWwwPath.indexOf(pathName);
-            var localhostPath=currentWwwPath.substring(0,position);
-            if(method=="nextProcess"){
-                $.post(localhostPath+'/legislationProcessTask/nextProcess.do?stDocId='+stDocId+'&stNodeId='+stNodeId);
-            }else{
-                $.post(localhostPath+'/legislationProcessTask/nextChildProcess.do?stDocId='+stDocId+'&stNodeId='+stNodeId);
-            }
+			$.post("../"+$('#requestUrl').val()+"?stDocId="+stDocId+"&stNodeId="+stNodeId+"&method="+method);
             submitForm(1);
         });
     }

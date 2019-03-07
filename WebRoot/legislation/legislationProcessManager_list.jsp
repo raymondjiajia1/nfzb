@@ -26,9 +26,10 @@
 			<div class="ibox-title">
 				<div class="row">
 						<div class="col-md-12">
-							<form action="${basePath}/legislationProcessTask/legislationProcessTask_list.do" id="legislationProcessTask" method="post" role="form" class="form-horizontal form-bordered">
+							<form action="${basePath}/${requestUrl}" id="legislationProcessTask" method="post" role="form" class="form-horizontal form-bordered">
 								<input type="hidden" id="taskStatus" value="TODO">
 								<input type="hidden" id="stNodeId" value="${nodeId}">
+								<input type="hidden" id="requestUrl" value="${requestUrl}">
 								<div class="col-md-4">
 									<div class="form-group">
 										<label class="col-md-2 control-label">发起时间:</label>
@@ -145,7 +146,7 @@
                 }
             }
         });
-        $.post('${basePath}/legislationProcessTask/legislationProcessTask_table.do?stNodeId=${nodeId}',function(data){
+        $.post("../${requestUrl}?stNodeId=${nodeId}&method=queryTable",function(data){
             $('#legislationProcessTaskTable').html(data);
         });
 	});
