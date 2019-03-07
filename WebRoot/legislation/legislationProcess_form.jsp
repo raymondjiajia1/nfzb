@@ -15,7 +15,6 @@
 				<label class="col-sm-3 control-label">法规规章草案：</label>
 				<div class="col-sm-9">
 					<input type="text" id="docName" name="docName" class="form-control">
-
 				</div>
 			</div>
 			<div class="form-group">
