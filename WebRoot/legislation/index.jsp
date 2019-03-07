@@ -76,7 +76,7 @@
 										<li><a class="J_menuItem" href="../legislationProcessTask/${task.stInfoUrl}?stNodeId=${task.stNodeId}">规章草案分办列表</a></li>
 									</c:when>
 									<c:when test="${task.stNodeId=='NOD_0000000101'}">
-										<li><a class="J_menuItem" href="../legislationProcessTask/draft_fzbrecv_info.do?stNodeId=${task.stNodeId}">规章草案起草列表</a></li>
+										<li><a class="J_menuItem" href="../legislationProcessTask/${task.stInfoUrl}?stNodeId=${task.stNodeId}">规章草案起草列表</a></li>
 									</c:when>
 									<c:otherwise>
 										<li><a class="J_menuItem" href="../legislationProcessTask/legislationProcessTask_list.do?stNodeId=${task.stNodeId}">1</a></li>
